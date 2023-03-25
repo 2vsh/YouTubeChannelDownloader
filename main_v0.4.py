@@ -1,11 +1,13 @@
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 import httplib2
 import google_auth_httplib2
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from pytube import YouTube
 from tqdm import tqdm
-import time
+
 
 def get_channel_videos(channel_id, api_key):
     youtube = build("youtube", "v3", developerKey=api_key)
@@ -23,7 +25,7 @@ def get_channel_videos(channel_id, api_key):
         )
         response = request.execute()
         all_videos += response["items"]
-        
+
         next_page_token = response.get("nextPageToken")
 
         if next_page_token is None:
@@ -31,12 +33,12 @@ def get_channel_videos(channel_id, api_key):
 
     return all_videos
 
+
 def download_video(video_id, output_path):
     try:
         yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
         stream = yt.streams.filter(file_extension='mp4').get_highest_resolution()
 
-        # Progress bar and MB/s counter
         def progress_hook(stream, chunk, bytes_remaining):
             current_time = time.time()
             current_mb = (stream.filesize - bytes_remaining) / (1024 * 1024)
@@ -54,23 +56,40 @@ def download_video(video_id, output_path):
     except Exception as e:
         print(f"Error downloading {video_id}: {e}")
 
-def main():
-    # Replace with your YouTube API key
-    api_key = "API_KEY_HERE" # KEEP THIS A SECRET! With this key, unwanted actions can be done without your consent. 
-    
-    # Replace with the desired YouTube channel ID
-    channel_id = "UCXuqSBlHAE6Xw-yeJA0Tunw" # To find this, you can use this website: https://commentpicker.com/youtube-channel-id.php#youtube-channel-id
 
-    output_path = "downloads"
+def get_channel_name(channel_id, api_key):
+    youtube = build("youtube", "v3", developerKey=api_key)
+    request = youtube.channels().list(
+        part="snippet",
+        id=channel_id
+    )
+    response = request.execute()
+    channel_name = response["items"][0]["snippet"]["title"]
+    return channel_name
+
+
+def main():
+    api_key = "PUT_KEY_HERE"
+    channel_id = "UCYwVxWpjeKFWwu8TML-Te9A"
+    base_output_path = "downloads"
+
+    if not os.path.exists(base_output_path):
+        os.makedirs(base_output_path)
+
+    channel_name = get_channel_name(channel_id, api_key)
+    output_path = os.path.join(base_output_path, channel_name)
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     videos = get_channel_videos(channel_id, api_key)
 
-    for video in videos:
-        video_id = video["id"]["videoId"]
-        download_video(video_id, output_path)
+    # Change the max_workers value to control the number of simultaneous downloads
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for video in videos:
+            video_id = video["id"]["videoId"]
+            executor.submit(download_video, video_id, output_path)
+
 
 if __name__ == "__main__":
     main()
