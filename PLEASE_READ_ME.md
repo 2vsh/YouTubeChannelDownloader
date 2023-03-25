@@ -33,6 +33,6 @@ Optionally, change the output_path variable to specify a different download dire
 output_path = "downloads"
 
 ## Run the script:
-python youtube_video_downloader.py (Or double click the main.py program) 
+python main.py (Or double click the main.py program) 
 
 The script will download all videos from the specified channel and save them in the downloads directory (or the specified directory) as MP4 files.
