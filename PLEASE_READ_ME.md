@@ -1,4 +1,4 @@
-# YouTube Video Downloader
+# Youtube Channel Downloader
 ### This is a simple Python script to download all videos from a specified YouTube channel using the YouTube API v3 and the PyTube library.
 
 ### Features
