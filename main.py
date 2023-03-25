@@ -56,7 +56,7 @@ def download_video(video_id, output_path):
 
 def main():
     # Replace with your YouTube API key
-    api_key = "API_KEY_HERE"
+    api_key = "API_KEY_HERE" # KEEP THIS A SECRET! With this key, unwanted actions can be done without your consent. 
     
     # Replace with the desired YouTube channel ID
     channel_id = "UCXuqSBlHAE6Xw-yeJA0Tunw" # To find this, you can use this website: https://commentpicker.com/youtube-channel-id.php#youtube-channel-id
