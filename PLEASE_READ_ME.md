@@ -9,7 +9,7 @@ Downloads the highest resolution MP4 video available
 ### Requirements
 Python 3.x
 
-A YouTube API key (you can obtain one from the Google Developer Console)
+A YouTube API key (you can obtain one from the Google Developer Console; Step by step tutorial on repo.)
 
 The following Python libraries:
 
