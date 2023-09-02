@@ -1,12 +1,11 @@
 import os
 import time
+import re
 from concurrent.futures import ThreadPoolExecutor
-import httplib2
-import google_auth_httplib2
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
+from urllib.parse import urlparse, parse_qs
 from pytube import YouTube
 from tqdm import tqdm
+from googleapiclient.discovery import build
 
 
 def get_channel_videos(channel_id, api_key):
@@ -69,26 +68,35 @@ def get_channel_name(channel_id, api_key):
 
 
 def main():
-    api_key = "PUT_KEY_HERE"
-    channel_id = "UCYwVxWpjeKFWwu8TML-Te9A"
+    api_key = "API_KEY_HERE"  # Replace this with your actual API key
     base_output_path = "downloads"
 
     if not os.path.exists(base_output_path):
         os.makedirs(base_output_path)
 
-    channel_name = get_channel_name(channel_id, api_key)
-    output_path = os.path.join(base_output_path, channel_name)
+    url = input("Please enter the YouTube URL: ")
+    parsed_url = urlparse(url)
 
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    if re.search(r"youtube\.com/channel/", url):
+        channel_id = os.path.basename(parsed_url.path)
+        channel_name = get_channel_name(channel_id, api_key)
+        output_path = os.path.join(base_output_path, channel_name)
 
-    videos = get_channel_videos(channel_id, api_key)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
 
-    # Change the max_workers value to control the number of simultaneous downloads
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        for video in videos:
-            video_id = video["id"]["videoId"]
-            executor.submit(download_video, video_id, output_path)
+        videos = get_channel_videos(channel_id, api_key)
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for video in videos:
+                video_id = video["id"]["videoId"]
+                executor.submit(download_video, video_id, output_path)
+    elif re.search(r"youtube\.com/watch", url):
+        query_string = parse_qs(parsed_url.query)
+        video_id = query_string["v"][0]
+        download_video(video_id, base_output_path)
+    else:
+        print("Invalid URL. Please enter a valid YouTube channel or video URL.")
 
 
 if __name__ == "__main__":
